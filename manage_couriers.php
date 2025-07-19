@@ -16,6 +16,23 @@ if ($_POST && isset($_POST['action'])) {
         
         if ($courier_id && $status) {
             try {
+                // Check if courier exists and user has permission
+                if (isAdmin()) {
+                    $check_stmt = $pdo->prepare("SELECT id FROM couriers WHERE courier_id = ?");
+                } else {
+                    $check_stmt = $pdo->prepare("SELECT id FROM couriers WHERE courier_id = ? AND agent_id = ?");
+                }
+                
+                if (isAdmin()) {
+                    $check_stmt->execute([$courier_id]);
+                } else {
+                    $check_stmt->execute([$courier_id, $_SESSION['user_id']]);
+                }
+                
+                if (!$check_stmt->fetch()) {
+                    throw new Exception("Courier not found or access denied");
+                }
+                
                 // Update courier status
                 $stmt = $pdo->prepare("UPDATE couriers SET status = ? WHERE courier_id = ?");
                 $stmt->execute([$status, $courier_id]);
@@ -31,17 +48,17 @@ if ($_POST && isset($_POST['action'])) {
                 $error = "Error updating status: " . $e->getMessage();
             }
         }
-    } elseif ($_POST['action'] === 'upload_delivery_image') {
+    } elseif ($_POST['action'] === 'upload_selfie') {
         $courier_id = $_POST['courier_id'] ?? '';
         
-        if ($courier_id && isset($_FILES['delivery_image'])) {
-            $file = $_FILES['delivery_image'];
+        if ($courier_id && isset($_FILES['selfie_image'])) {
+            $file = $_FILES['selfie_image'];
             
             // Check file size (1MB limit)
             if ($file['size'] > 1048576) {
                 $error = "File size must be under 1MB";
             } else {
-                $upload_dir = 'uploads/delivery_images/';
+                $upload_dir = 'uploads/selfie_images/';
                 if (!is_dir($upload_dir)) {
                     mkdir($upload_dir, 0777, true);
                 }
@@ -52,16 +69,16 @@ if ($_POST && isset($_POST['action'])) {
                 
                 if (move_uploaded_file($file['tmp_name'], $upload_path)) {
                     // Save to database
-                    $stmt = $pdo->prepare("INSERT INTO delivery_images (courier_id, image_path, uploaded_by) VALUES (?, ?, ?)");
+                    $stmt = $pdo->prepare("INSERT INTO selfie_images (courier_id, image_path, uploaded_by) VALUES (?, ?, ?)");
                     $stmt->execute([$courier_id, $upload_path, $_SESSION['user_id']]);
                     
                     // Update courier status to delivered
                     $stmt = $pdo->prepare("UPDATE couriers SET status = 'delivered' WHERE courier_id = ?");
                     $stmt->execute([$courier_id]);
                     
-                    logActivity($pdo, 'delivery_image_uploaded', "Delivery image uploaded for courier $courier_id", $courier_id);
+                    logActivity($pdo, 'selfie_uploaded', "Delivery selfie uploaded for courier $courier_id", $courier_id);
                     
-                    $success = "Delivery image uploaded successfully!";
+                    $success = "Delivery selfie uploaded successfully!";
                 } else {
                     $error = "Error uploading file";
                 }
@@ -153,7 +170,7 @@ $couriers = $stmt->fetchAll();
                                             </button>
                                             <?php if ($courier['status'] !== 'delivered'): ?>
                                             <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#deliveryModal<?= $courier['id'] ?>">
-                                                <i class="fas fa-camera"></i> Deliver
+                                               <i class="fas fa-camera"></i> Upload Selfie
                                             </button>
                                             <?php endif; ?>
                                         </td>
@@ -206,23 +223,23 @@ $couriers = $stmt->fetchAll();
                                         <div class="modal-dialog">
                                             <div class="modal-content">
                                                 <div class="modal-header">
-                                                    <h5 class="modal-title">Upload Delivery Image - <?= htmlspecialchars($courier['courier_id']) ?></h5>
+                                                    <h5 class="modal-title">Upload Delivery Selfie - <?= htmlspecialchars($courier['courier_id']) ?></h5>
                                                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                                 </div>
                                                 <form method="POST" enctype="multipart/form-data">
                                                     <div class="modal-body">
-                                                        <input type="hidden" name="action" value="upload_delivery_image">
+                                                        <input type="hidden" name="action" value="upload_selfie">
                                                         <input type="hidden" name="courier_id" value="<?= htmlspecialchars($courier['courier_id']) ?>">
                                                         
                                                         <div class="mb-3">
-                                                            <label for="delivery_image" class="form-label">Delivery Image (Max 1MB)</label>
-                                                            <input type="file" class="form-control" name="delivery_image" accept="image/*" required>
+                                                            <label for="selfie_image" class="form-label">Delivery Selfie (Max 1MB)</label>
+                                                            <input type="file" class="form-control" name="selfie_image" accept="image/*" required>
                                                             <small class="text-muted">Supported formats: JPG, PNG, GIF. Maximum size: 1MB</small>
                                                         </div>
                                                     </div>
                                                     <div class="modal-footer">
                                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                                        <button type="submit" class="btn btn-success">Upload & Mark Delivered</button>
+                                                        <button type="submit" class="btn btn-success">Upload Selfie & Mark Delivered</button>
                                                     </div>
                                                 </form>
                                             </div>

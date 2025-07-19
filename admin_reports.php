@@ -79,8 +79,8 @@ $stats = $stmt->fetch();
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <h4><i class="fas fa-chart-bar"></i> Reports & Analytics</h4>
                         <div>
-                            <a href="export_pdf.php?<?= http_build_query($_GET) ?>" class="btn btn-danger">
-                                <i class="fas fa-file-pdf"></i> Export PDF
+                            <a href="export_notes.php?<?= http_build_query($_GET) ?>" class="btn btn-success">
+                                <i class="fas fa-file-alt"></i> Export to Notes
                             </a>
                             <a href="dashboard.php" class="btn btn-secondary">
                                 <i class="fas fa-arrow-left"></i> Back to Dashboard

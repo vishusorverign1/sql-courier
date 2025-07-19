@@ -100,8 +100,8 @@ $recent_activities = $pdo->query($activity_query)->fetchAll();
                             </a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link" href="delivery_images.php">
-                                <i class="fas fa-images"></i> Delivery Images
+                            <a class="nav-link" href="delivery_selfies.php">
+                                <i class="fas fa-images"></i> Delivery Selfies
                             </a>
                         </li>
                         <?php endif; ?>

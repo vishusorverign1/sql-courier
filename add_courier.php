@@ -20,6 +20,8 @@ if ($_POST) {
     $amount = $_POST['amount'] ?? '';
     $remarks = $_POST['remarks'] ?? '';
     $created_date = $_POST['created_date'] ?? date('Y-m-d');
+    $to_party_name_note = $_POST['to_party_name_note'] ?? '';
+    $from_party_name_note = $_POST['from_party_name_note'] ?? '';
     
     if ($to_party_name && $from_party_name && $sender_name && $receiver_name) {
         try {
@@ -44,7 +46,9 @@ if ($_POST) {
                 'sender_name' => $sender_name,
                 'receiver_name' => $receiver_name,
                 'weight' => $weight,
-                'amount' => $amount
+              'amount' => $amount,
+              'to_party_name_note' => $to_party_name_note,
+              'from_party_name_note' => $from_party_name_note
             ];
             
         } catch (Exception $e) {
@@ -185,9 +189,33 @@ if ($_POST) {
                                 <textarea class="form-control" id="remarks" name="remarks" rows="3"></textarea>
                             </div>
                             
+                            <hr>
+                            <h5>Party Information</h5>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="to_party_name_note" class="form-label">To Party Name (for notes)</label>
+                                        <input type="text" class="form-control" id="to_party_name_note" name="to_party_name_note">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="from_party_name_note" class="form-label">From Party Name (for notes)</label>
+                                        <input type="text" class="form-control" id="from_party_name_note" name="from_party_name_note">
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <button type="submit" class="btn btn-primary">
                                 <i class="fas fa-save"></i> Add Courier
                             </button>
+                            
+                            <?php if ($success && isset($_SESSION['last_courier'])): ?>
+                            <a href="download_party_notes.php" class="btn btn-info ms-2">
+                                <i class="fas fa-download"></i> Download Party Notes
+                            </a>
+                            <?php endif; ?>
                         </form>
                     </div>
                 </div>
